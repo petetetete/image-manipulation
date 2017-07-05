@@ -1,2 +1,2 @@
 # image-manip
-A playground of image manipulation ~things~
+A playground of image manipulation \~things\~
