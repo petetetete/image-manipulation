@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <div style="display:flex;justify-content:space-around;margin-bottom:20px;">
+            <!-- https://upload.wikimedia.org/wikipedia/commons/f/f0/Valve_original_%281%29.PNG -->
+            <img id="img-start" src="images/valve.PNG" crossorigin="anonymous" />
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div style="text-align:center;">
+            <div style="margin-bottom: 10px;">
+                <label>Blur radius</label>  
+                <input id="radius" type="number" value="10" />
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>Edge width</label>  
+                <input id="edge-width" type="number" value="100" />
+            </div>
+            
+            <button id="blur" style="font-size:1.5em;">Blur!</button>
+        </div>
+        
+        <script src="js/main.js"></script>
+    </body>
+</html>
