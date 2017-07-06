@@ -48,18 +48,18 @@ function createConvolution(rad, sig) {
 
 
 radius.onchange = function(e) {
-    rad = Math.max(0, parseInt(e.target.value));
+    rad = Math.max(0, parseInt(e.target.value || 0));
     conv = createConvolution(rad, sig);
 }
 sigma.onchange = function(e) {
-    sig = Math.max(0, parseFloat(e.target.value));
+    sig = Math.max(0, parseFloat(e.target.value || 0));
     conv = createConvolution(rad, sig);
 }
 edgeWidth.onchange = function(e) {
-    edgeW = Math.max(0, parseInt(e.target.value));
+    edgeW = Math.max(0, parseInt(e.target.value || 0));
 }
 edgeHeight.onchange = function(e) {
-    edgeH = Math.max(0, parseInt(e.target.value));
+    edgeH = Math.max(0, parseInt(e.target.value || 0));
 }
 imgUrl.onchange = function(e) {
     img.src = e.target.value;
@@ -136,35 +136,6 @@ button.onclick = function() {
         }
 
     }
-
-
-    // Black and white Gaussian
-    /*for (let y1 = 0; y1 < h; y1++) {
-        for (let x1 = 0; x1 < w; x1++) {
-
-            let sum = 0;
-            let totalNum = 0;
-
-            for (let y2 = Math.max(0, y1 - rad), end1 = Math.min(h, y1 + rad + 1); y2 < end1; y2++) {
-                for (let x2 = Math.max(0, x1 - rad), end2 = Math.min(w, x1 + rad + 1); x2 < end2; x2++) {
-
-                    let start = 4 * (w*y2 + x2);
-
-                    sum += (tmpPx[start] + tmpPx[start + 1] + tmpPx[start + 2]) / 3;
-
-                    totalNum++;
-
-                }
-            }
-
-            let start = 4 * (w*y1 + x1);
-            let avg = sum / totalNum;
-            px[start] = avg;
-            px[start + 1] = avg;
-            px[start + 2] = avg;
-
-        }
-    }*/
 
     // Log generation time
     let t2 = performance.now();

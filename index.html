@@ -66,13 +66,28 @@
             .option > label {
                 display: block;
             }
+            .button {
+                font-size: 1.5em;
+                margin: 5px 0 15px 0;
+                font-family: Roboto Condensed;
+            }
+
+            @media (max-width: 768px) {
+                .image-container {
+                    flex-direction: column;
+                }
+                .image:nth-child(1) {
+                    border-right: 4px solid #424242;
+                    border-bottom: none;
+                }
+            }
         </style>
     </head>
     <body>
         <div class="image-container">
             <div class="image">
                 <!-- https://upload.wikimedia.org/wikipedia/commons/f/f0/Valve_original_%281%29.PNG -->
-                <img id="img-start" src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Valve_original_%281%29.PNG" crossorigin="anonymous" />
+                <img id="img-start" src="images/valve.png" crossorigin="anonymous" />
             </div>
             <div class="image">
                 <canvas id="canvas"></canvas>
@@ -86,15 +101,15 @@
             </div>
             <div class="option">
                 <label class="">Blur Radius (Sigma)</label>  
-                <input id="sigma" type="number" value="5" />
+                <input id="sigma" type="number" value="8" />
             </div>
             <div class="option">
                 <label>X-Axis Edge Width</label>  
-                <input id="edge-width" type="number" value="100" />
+                <input id="edge-width" type="number" value="75" />
             </div>
             <div class="option">
                 <label>Y-Axis Edge Height</label>  
-                <input id="edge-height" type="number" value="100" />
+                <input id="edge-height" type="number" value="75" />
             </div>
             <div class="option">
                 <label>Grayscale Blur</label>
@@ -108,7 +123,7 @@
                 <input id="img-url" type="text" placeholder="Set custom image url" />
             </div>
             
-            <button id="blur" style="font-size:1.5em;margin:5px 0 15px 0;">Blur!</button>
+            <button id="blur" class="button">Blur!</button>
 
             <div id="time"></div>
         </div>
