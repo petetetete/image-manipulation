@@ -5,6 +5,7 @@ const edgeWidth = document.getElementById("edge-width");
 const edgeHeight = document.getElementById("edge-height");
 const button = document.getElementById("blur");
 const imgUrl = document.getElementById("img-url");
+const grayscale = document.getElementById("grayscale");
 const time = document.getElementById("time");
 
 const canvas = document.getElementById("canvas");
@@ -16,6 +17,7 @@ var rad = parseInt(radius.value);
 var sig = parseInt(sigma.value);
 var edgeW = parseInt(edgeWidth.value);
 var edgeH = parseInt(edgeHeight.value);
+var gray = grayscale.value == "true";
 
 let conv = createConvolution(rad, sig);
 
@@ -67,7 +69,9 @@ imgUrl.onchange = function(e) {
         canvas.height = img.naturalHeight;
         context.drawImage(img, 0, 0);
     }
-    
+}
+grayscale.onchange = function(e) {
+    gray = e.target.value == "true";
 }
 
 window.onload = function() {
@@ -100,58 +104,37 @@ button.onclick = function() {
             // Edge blur limitations
             if (y1 > edgeH && y1 < h - edgeH && x1 > edgeW && x1 < w - edgeW) continue;
 
-            /*let rSum = 0;
-            let gSum = 0;
-            let bSum = 0;
-            let totalNum = 0;*/
-
             let newR = 0;
             let newG = 0;
             let newB = 0;
 
-            for (let y2 = Math.max(0, y1 - rad), end1 = Math.min(h, y1 + rad + 1); y2 < end1; y2++) {
+            for (let y2 = y1 - rad, end1 = y1 + rad + 1; y2 < end1; y2++) {
 
+                y = Math.max(0, Math.min(y2, h - 1));
                 convY = rad + (y2 - y1);
 
-                for (let x2 = Math.max(0, x1 - rad), end2 = Math.min(w, x1 + rad + 1); x2 < end2; x2++) {
+                for (let x2 = x1 - rad, end2 = x1 + rad + 1; x2 < end2; x2++) {
 
+                    x = Math.max(0, Math.min(x2, w - 1));
                     convX = rad + (x2 - x1);
 
-                    let start = 4 * (w*y2 + x2);
+                    let point = 4 * (w*y + x);
 
-                    /*rSum += tmpPx[start];
-                    gSum += tmpPx[start + 1];
-                    bSum += tmpPx[start + 2];
+                    newR += conv[convY][convX] * tmpPx[point];
+                    newG += conv[convY][convX] * tmpPx[point + 1];
+                    newB += conv[convY][convX] * tmpPx[point + 2];
 
-                    totalNum++;*/
-
-                    newR += conv[convY][convX] * tmpPx[start];
-                    newG += conv[convY][convX] * tmpPx[start + 1];
-                    newB += conv[convY][convX] * tmpPx[start + 2];
-
-                    
                 }
             }
 
-            let start = 4 * (w*y1 + x1);
+            let point = 4 * (w*y1 + x1);
+            let density = Math.floor((newR + newG + newB) / 3);
 
-            /*if (x1 > 15) {
-                console.log(px[start], px[start + 1], px[start + 2])
-            }*/
-
-            /*px[start] = rSum / totalNum;
-            px[start + 1] = gSum / totalNum;
-            px[start + 2] = bSum / totalNum;*/
-
-            px[start] = Math.floor(newR);
-            px[start + 1] = Math.floor(newG);
-            px[start + 2] = Math.floor(newB);
-
-            /*if (x1 > 15) {
-                console.log(px[start], px[start + 1], px[start + 2])
-                return;
-            }*/
+            px[point] = (gray) ? density : Math.floor(newR);
+            px[point + 1] = (gray) ? density : Math.floor(newG);
+            px[point + 2] = (gray) ? density : Math.floor(newB);
         }
+
     }
 
 
