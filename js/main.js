@@ -1,5 +1,6 @@
 const img = document.getElementById("img-start");
 const radius = document.getElementById("radius");
+const sigma = document.getElementById("sigma");
 const edgeWidth = document.getElementById("edge-width");
 const edgeHeight = document.getElementById("edge-height");
 const button = document.getElementById("blur");
@@ -12,12 +13,45 @@ const context = canvas.getContext("2d");
 const times = [];
 
 var rad = parseInt(radius.value);
+var sig = parseInt(sigma.value);
 var edgeW = parseInt(edgeWidth.value);
 var edgeH = parseInt(edgeHeight.value);
+
+let conv = createConvolution(rad, sig);
+
+function createConvolution(rad, sig) {
+
+    let size = 2 * rad + 1;
+    let conv = new Array(size);
+    let sum = 0;
+
+    // Calculate initial matrix
+    for (let i = 0, y = -rad; i < size; i++, y++) {
+        conv[i] = new Array(size);
+        for (let j = 0, x = -rad; j < size; j++, x++) {
+            conv[i][j] = 1 / (2 * Math.PI * sig*sig) * Math.pow(Math.E, - (x*x + y*y) / (2 * sig*sig));
+            sum += conv[i][j];
+        }
+    }
+
+    // Normalize Matrix
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            conv[i][j] = conv[i][j] / sum;
+        }
+    }
+
+    return conv;
+}
 
 
 radius.onchange = function(e) {
     rad = Math.max(0, parseInt(e.target.value));
+    conv = createConvolution(rad, sig);
+}
+sigma.onchange = function(e) {
+    sig = Math.max(0, parseFloat(e.target.value));
+    conv = createConvolution(rad, sig);
 }
 edgeWidth.onchange = function(e) {
     edgeW = Math.max(0, parseInt(e.target.value));
@@ -66,32 +100,60 @@ button.onclick = function() {
             // Edge blur limitations
             if (y1 > edgeH && y1 < h - edgeH && x1 > edgeW && x1 < w - edgeW) continue;
 
-            let rSum = 0;
+            /*let rSum = 0;
             let gSum = 0;
             let bSum = 0;
-            let totalNum = 0;
+            let totalNum = 0;*/
+
+            let newR = 0;
+            let newG = 0;
+            let newB = 0;
 
             for (let y2 = Math.max(0, y1 - rad), end1 = Math.min(h, y1 + rad + 1); y2 < end1; y2++) {
+
+                convY = rad + (y2 - y1);
+
                 for (let x2 = Math.max(0, x1 - rad), end2 = Math.min(w, x1 + rad + 1); x2 < end2; x2++) {
+
+                    convX = rad + (x2 - x1);
 
                     let start = 4 * (w*y2 + x2);
 
-                    rSum += tmpPx[start];
+                    /*rSum += tmpPx[start];
                     gSum += tmpPx[start + 1];
                     bSum += tmpPx[start + 2];
 
-                    totalNum++;
+                    totalNum++;*/
 
+                    newR += conv[convY][convX] * tmpPx[start];
+                    newG += conv[convY][convX] * tmpPx[start + 1];
+                    newB += conv[convY][convX] * tmpPx[start + 2];
+
+                    
                 }
             }
 
             let start = 4 * (w*y1 + x1);
-            px[start] = rSum / totalNum;
-            px[start + 1] = gSum / totalNum;
-            px[start + 2] = bSum / totalNum;
 
+            /*if (x1 > 15) {
+                console.log(px[start], px[start + 1], px[start + 2])
+            }*/
+
+            /*px[start] = rSum / totalNum;
+            px[start + 1] = gSum / totalNum;
+            px[start + 2] = bSum / totalNum;*/
+
+            px[start] = Math.floor(newR);
+            px[start + 1] = Math.floor(newG);
+            px[start + 2] = Math.floor(newB);
+
+            /*if (x1 > 15) {
+                console.log(px[start], px[start + 1], px[start + 2])
+                return;
+            }*/
         }
     }
+
 
     // Black and white Gaussian
     /*for (let y1 = 0; y1 < h; y1++) {

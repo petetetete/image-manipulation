@@ -71,7 +71,8 @@
     <body>
         <div class="image-container">
             <div class="image">
-                <img id="img-start" src="images/valve.PNG" crossorigin="anonymous" />
+                <!-- https://upload.wikimedia.org/wikipedia/commons/f/f0/Valve_original_%281%29.PNG -->
+                <img id="img-start" src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Valve_original_%281%29.PNG" crossorigin="anonymous" />
             </div>
             <div class="image">
                 <canvas id="canvas"></canvas>
@@ -80,15 +81,19 @@
 
         <div class="options">
             <div class="option">
-                <label class="">Blur radius</label>  
-                <input id="radius" type="number" value="10" />
+                <label class="">Kernel Radius</label>  
+                <input id="radius" type="number" value="6" />
             </div>
             <div class="option">
-                <label>X-Axis edge width</label>  
-                <input id="edge-width" type="number" value="50" />
+                <label class="">Blur Radius (Sigma)</label>  
+                <input id="sigma" type="number" value="1" />
             </div>
             <div class="option">
-                <label>Y-Axis edge height</label>  
+                <label>X-Axis Edge Width</label>  
+                <input id="edge-width" type="number" value="500" />
+            </div>
+            <div class="option">
+                <label>Y-Axis Edge Height</label>  
                 <input id="edge-height" type="number" value="50" />
             </div>
             <div class="option">
