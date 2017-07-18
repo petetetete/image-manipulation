@@ -339,7 +339,7 @@ const lowThreshold = document.getElementById("low-threshold");
 const highThreshold = document.getElementById("high-threshold");
 const processStep = document.getElementById("process-step");
 const imgUrl = document.getElementById("img-url");
-const button = document.getElementById("blur");
+const button = document.getElementById("submit");
 const time = document.getElementById("time");
 
 const canvas = document.getElementById("canvas");
@@ -426,8 +426,7 @@ button.onclick = function() {
 
     // Log generation time
     times.push(Math.floor(t2-t1));
-    console.log(`${Math.floor(t2-t1)}ms generation time`);
-    time.innerText = "Generation Time: " + Math.floor(t2-t1) + "ms";
+    time.innerText = "Elapsed Time: " + Math.floor(t2-t1) + "ms";
 
     // Render new image data and clean up
     context.putImageData(outData, 0, 0);
