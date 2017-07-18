@@ -58,7 +58,11 @@
                 display: flex;
                 align-items: center;
                 flex-direction: column;
-                font-size: 1.2rem;
+                font-size: 1.15rem;
+                padding-bottom: 25px;
+            }
+            .option-group {
+                display: flex;
             }
             .option {
                 margin-bottom: 10px;
@@ -72,11 +76,15 @@
             .option > input {
                 font-family: Roboto Condensed;
                 width: 225px;
+                height: 28px;
                 box-sizing: border-box;
-                padding: 8px 10px;
+                padding: 4px 5px;
                 border-radius: 3px;
                 border: 1px solid rgb(169, 169, 169);
                 font-size: 0.8em;
+            }
+            .option:first-of-type {
+                margin-right: 10px;
             }
             .button {
                 font-size: 1.5em;
@@ -98,8 +106,8 @@
     <body>
         <div class="image-container">
             <div class="image">
-                <!-- <img id="img-start" src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Valve_original_%281%29.PNG" crossorigin="anonymous" /> -->
-                <img id="img-start" src="images/valve.PNG" crossorigin="anonymous" />
+                <img id="img-start" src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Valve_original_%281%29.PNG" crossorigin="anonymous" />
+                <!-- <img id="img-start" src="images/valve.PNG" crossorigin="anonymous" /> -->
             </div>
             <div class="image">
                 <canvas id="canvas"></canvas>
@@ -107,25 +115,40 @@
         </div>
 
         <div class="options">
-            <div class="option">
-                <label class="">Kernel Radius</label>  
-                <input id="radius" type="number" value="2" />
+            <div class="option-group">
+                <div class="option">
+                    <label class="">Kernel Radius [0-10]</label>
+                    <input id="radius" type="number" value="2" />
+                </div>
+                <div class="option">
+                    <label class="">Blur Radius (Sigma)</label>
+                    <input id="sigma" type="number" value="1.4" />
+                </div>
             </div>
-            <div class="option">
-                <label class="">Blur Radius (Sigma)</label>  
-                <input id="sigma" type="number" value="1.4" />
+            <div class="option-group">
+                <div class="option">
+                    <label class="">Low Threshold [0-255]</label>
+                    <input id="low-threshold" type="number" value="75" />
+                </div>
+                <div class="option">
+                    <label class="">High Threshold [0-255]</label>
+                    <input id="high-threshold" type="number" value="100" />
+                </div>
             </div>
-            <div class="option">
-                <label>Process step</label>
-                <select id="process-step">
-                    <option value="gaussian">Gaussian Blur</option>
-                    <option value="sobel">Sobel Filter</option>
-                    <option value="nonmax" selected>Non Max Suppression</option>
-                </select>
-            </div>
-            <div class="option">
-                <label>Custom Image URL</label>  
-                <input id="img-url" type="text" placeholder="Set custom image url" />
+            <div class="option-group">
+                <div class="option">
+                    <label>Process step</label>
+                    <select id="process-step">
+                        <option value="gaussian">Gaussian Blur</option>
+                        <option value="sobel">Sobel Filter</option>
+                        <option value="nonmax">Non Max Suppression</option>
+                        <option value="doublethresh" selected>Double Threshold Cleanup</option>
+                    </select>
+                </div>
+                <div class="option">
+                    <label>Custom Image URL</label>  
+                    <input id="img-url" type="text" placeholder="Set custom image url" />
+                </div>
             </div>
             
             <button id="blur" class="button">Blur!</button>

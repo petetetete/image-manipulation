@@ -3,7 +3,9 @@
  * @param  {ImageData} imgData
  * @return {ImageData}          Density isolated image data
  */
-function gaussianBlur(imgData, grayscale = true) {
+function gaussianBlur(imgData, convolution, grayscale = true) {
+
+    const radius = Math.floor(convolution.length / 2);
 
     // Get input ImageData info
     const px = imgData.data;
@@ -24,24 +26,24 @@ function gaussianBlur(imgData, grayscale = true) {
             let newB = 0;
 
             // Iterate over convolution matrix
-            for (let y2 = y1 - rad, end1 = y1 + rad + 1; y2 < end1; y2++) {
+            for (let y2 = y1 - radius, end1 = y1 + radius + 1; y2 < end1; y2++) {
 
                 // Keep y on edges in extreme case
                 let y = Math.max(0, Math.min(y2, h - 1));
-                let convY = rad + (y2 - y1);
+                let convY = radius + (y2 - y1);
 
-                for (let x2 = x1 - rad, end2 = x1 + rad + 1; x2 < end2; x2++) {
+                for (let x2 = x1 - radius, end2 = x1 + radius + 1; x2 < end2; x2++) {
 
                     // Keep x on edges in extreme case
                     let x = Math.max(0, Math.min(x2, w - 1));
-                    let convX = rad + (x2 - x1);
+                    let convX = radius + (x2 - x1);
 
                     let point = 4 * (x + y*w);
 
                     // Do vonvolution calculation
-                    newR += conv[convY][convX] * px[point];
-                    newG += conv[convY][convX] * px[point + 1];
-                    newB += conv[convY][convX] * px[point + 2];
+                    newR += convolution[convY][convX] * px[point];
+                    newG += convolution[convY][convX] * px[point + 1];
+                    newB += convolution[convY][convX] * px[point + 2];
 
                 }
             }
@@ -98,7 +100,7 @@ function sobelFilter(imgData) {
             let magX = 0;
             let magY = 0;
 
-            // Iterate over convolution matrix
+            // Iterate over sobel matrices
             for (let a = 0; a < 3; a++) {
 
                 for (let b = 0; b < 3; b++) {
@@ -211,6 +213,94 @@ function nonMaxSuppression(imgData, gradientAngles) {
 
 }
 
+/**
+ * Refine an ImageData object by removing pixels that are below density thresholds
+ * @param  {ImageData} imgData      Density isolated image data
+ * @param  {Integer} highThreshold  Min density value for a strong edge (0 <= highThreshold <= 255)
+ * @param  {integer} lowThreshold   Min density value for a weak edge (0 <= lowThreshold <= highThreshold)
+ * @return {ImageData}
+ */
+function doubleThreshold(imgData, highThreshold, lowThreshold = highThreshold) {
+
+    // Get input ImageData info
+    const px = imgData.data;
+    const w = imgData.width;
+    const h = imgData.height;
+
+    // Create output ImageData
+    const out = new ImageData(w, h);
+    const outPx = out.data;
+
+    // Iterate over each pixel in data array, abstracted with x's and y's
+    for (let y = 0; y < h; y++) {
+
+        for (let x = 0; x < w; x++) {
+
+            let point = 4 * (x + y*w);
+
+            // Keep if above high threshold
+            if (px[point] >= highThreshold) {
+                outPx[point] = px[point];
+                outPx[point + 1] = px[point + 1];
+                outPx[point + 2] = px[point + 2];
+                outPx[point + 3] = 255;
+            }
+
+            // Conditionally keep is above low threshold
+            else if (px[point] >= lowThreshold) {
+
+                let keep = false;
+
+                // Blob analysis of 8 (technically all 9) surrounding pixels
+                loop1:
+                for (let a = 0; a < 3; a++) {
+
+                    for (let b = 0; b < 3; b++) {
+
+                        let sy = Math.max(0, Math.min(y + a - 1, h - 1));
+                        let sx = Math.max(0, Math.min(x + b - 1, w - 1));
+
+                        let point = 4 * (sx + sy*w);
+
+                        // If adjacent point is strong, keep this weak point
+                        if (px[point] >= highThreshold) {
+                            keep = true;
+                            break loop1;
+                        }
+
+                    }
+                }
+
+                if (keep) {
+                    outPx[point] = px[point];
+                    outPx[point + 1] = px[point + 1];
+                    outPx[point + 2] = px[point + 2];
+                    outPx[point + 3] = 255;
+                }
+                else {
+                    outPx[point] = 0;
+                    outPx[point + 1] = 0;
+                    outPx[point + 2] = 0;
+                    outPx[point + 3] = 255;
+                }
+            }
+
+            // Suppress if below low threshold
+            else {
+                outPx[point] = 0;
+                outPx[point + 1] = 0;
+                outPx[point + 2] = 0;
+                outPx[point + 3] = 255;
+            }
+
+        }
+
+    }
+
+    return out;
+
+}
+
 
 /* BEGIN: UI stuff */
 
@@ -218,9 +308,11 @@ function nonMaxSuppression(imgData, gradientAngles) {
 const img = document.getElementById("img-start");
 const radius = document.getElementById("radius");
 const sigma = document.getElementById("sigma");
-const button = document.getElementById("blur");
-const imgUrl = document.getElementById("img-url");
+const lowThreshold = document.getElementById("low-threshold");
+const highThreshold = document.getElementById("high-threshold");
 const processStep = document.getElementById("process-step");
+const imgUrl = document.getElementById("img-url");
+const button = document.getElementById("blur");
 const time = document.getElementById("time");
 
 const canvas = document.getElementById("canvas");
@@ -228,9 +320,11 @@ const context = canvas.getContext("2d");
 
 const times = [];
 
-var rad = parseInt(radius.value);
-var sig = parseInt(sigma.value);
-var proc = processStep.value;
+let rad = parseInt(radius.value);
+let sig = parseInt(sigma.value);
+let lowThresh = parseInt(lowThreshold.value);
+let highThresh = parseInt(highThreshold.value);
+let proc = processStep.value;
 
 let conv = createConvolution(rad, sig);
 
@@ -262,12 +356,22 @@ function createConvolution(rad, sig) {
 
 
 radius.onchange = function(e) {
-    rad = Math.max(0, parseInt(e.target.value || 0));
+    rad = Math.max(0, Math.min(10, parseInt(e.target.value || 0)));
     conv = createConvolution(rad, sig);
 }
 sigma.onchange = function(e) {
     sig = Math.max(0, parseFloat(e.target.value || 0));
     conv = createConvolution(rad, sig);
+}
+lowThreshold.onchange = function(e) {
+    lowThresh = Math.max(0, Math.min(parseInt(e.target.value || 0), 255));
+}
+highThreshold.onchange = function(e) {
+    highThresh = Math.max(0, Math.min(parseFloat(e.target.value || 0), 255));
+}
+processStep.onchange = function(e) {
+    proc = e.target.value;
+    console.log(proc);
 }
 imgUrl.onchange = function(e) {
     img.src = e.target.value;
@@ -277,14 +381,6 @@ imgUrl.onchange = function(e) {
         canvas.height = img.naturalHeight;
         context.drawImage(img, 0, 0);
     }
-}
-radius.onchange = function(e) {
-    rad = Math.max(0, parseInt(e.target.value || 0));
-    conv = createConvolution(rad, sig);
-}
-processStep.onchange = function(e) {
-    proc = e.target.value;
-    console.log(proc);
 }
 
 window.onload = function() {
@@ -307,16 +403,22 @@ button.onclick = function() {
 
     // Do different steps of the process depending on the user's selection
     if (proc == "gaussian") {
-        outData = gaussianBlur(data);
+        outData = gaussianBlur(data, conv);
     }
     else if (proc == "sobel") {
-        let gaussData = gaussianBlur(data);
+        let gaussData = gaussianBlur(data, conv);
         [outData, _] = sobelFilter(gaussData);
     }
-    else {
-        let gaussData = gaussianBlur(data);
+    else if (proc == "nonmax") {
+        let gaussData = gaussianBlur(data, conv);
         let [sobelData, gradientAngles] = sobelFilter(gaussData);
         outData = nonMaxSuppression(sobelData, gradientAngles);
+    }
+    else {
+        let gaussData = gaussianBlur(data, conv);
+        let [sobelData, gradientAngles] = sobelFilter(gaussData);
+        let nonMaxData = nonMaxSuppression(sobelData, gradientAngles);
+        outData = doubleThreshold(nonMaxData, highThresh, lowThresh);
     }
 
     // Performance testing time end
