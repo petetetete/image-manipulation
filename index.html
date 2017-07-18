@@ -86,7 +86,7 @@
     <body>
         <div class="image-container">
             <div class="image">
-                <!-- https://upload.wikimedia.org/wikipedia/commons/f/f0/Valve_original_%281%29.PNG -->
+                <!-- <img id="img-start" src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Valve_original_%281%29.PNG" crossorigin="anonymous" /> -->
                 <img id="img-start" src="images/valve.PNG" crossorigin="anonymous" />
             </div>
             <div class="image">
@@ -97,25 +97,17 @@
         <div class="options">
             <div class="option">
                 <label class="">Kernel Radius</label>  
-                <input id="radius" type="number" value="5" />
+                <input id="radius" type="number" value="2" />
             </div>
             <div class="option">
                 <label class="">Blur Radius (Sigma)</label>  
-                <input id="sigma" type="number" value="10" />
-            </div>
-            <div class="option">
-                <label>X-Axis Edge Width</label>  
-                <input id="edge-width" type="number" value="100" />
-            </div>
-            <div class="option">
-                <label>Y-Axis Edge Height</label>  
-                <input id="edge-height" type="number" value="0" />
+                <input id="sigma" type="number" value="1.4" />
             </div>
             <div class="option">
                 <label>Grayscale Blur</label>
                 <select id="grayscale" style="width:173px;">
-                    <option value="false" selected>No</option>
-                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                    <option value="true" selected>Yes</option>
                 </select>
             </div>
             <div class="option">
