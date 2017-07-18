@@ -5,7 +5,7 @@
  */
 function gaussianBlur(imgData, convolution, grayscale = true) {
 
-    const radius = Math.floor(convolution.length / 2);
+    const convDiam = convolution.length;
 
     // Get input ImageData info
     const px = imgData.data;
@@ -17,28 +17,25 @@ function gaussianBlur(imgData, convolution, grayscale = true) {
     const outPx = out.data;
 
     // Iterate over each pixel in data array, abstracted with x's and y's
-    for (let y1 = 0; y1 < h; y1++) {
+    for (let y = 0; y < h; y++) {
 
-        for (let x1 = 0; x1 < w; x1++) {
+        for (let x = 0; x < w; x++) {
 
             let newR = 0;
             let newG = 0;
             let newB = 0;
 
             // Iterate over convolution matrix
-            for (let y2 = y1 - radius, end1 = y1 + radius + 1; y2 < end1; y2++) {
+            for (let convY = 0; convY < convDiam; convY++) {
 
-                // Keep y on edges in extreme case
-                let y = Math.max(0, Math.min(y2, h - 1));
-                let convY = radius + (y2 - y1);
+                // Current convolution matrix y location
+                let cy = Math.max(0, Math.min(y + convY - Math.floor(convDiam / 2), h - 1));
 
-                for (let x2 = x1 - radius, end2 = x1 + radius + 1; x2 < end2; x2++) {
+                for (let convX = 0; convX < convDiam; convX++) {
 
-                    // Keep x on edges in extreme case
-                    let x = Math.max(0, Math.min(x2, w - 1));
-                    let convX = radius + (x2 - x1);
-
-                    let point = 4 * (x + y*w);
+                    // Current convolution matrix y location
+                    let cx = Math.max(0, Math.min(x + convX - Math.floor(convDiam / 2), w - 1));
+                    let point = 4 * (cx + cy*w);
 
                     // Do vonvolution calculation
                     newR += convolution[convY][convX] * px[point];
@@ -48,7 +45,7 @@ function gaussianBlur(imgData, convolution, grayscale = true) {
                 }
             }
 
-            const point = 4 * (x1 + y1*w);
+            const point = 4 * (x + y*w);
             const density = Math.floor((newR + newG + newB) / 3);
 
             // Update data array with appropriate value
@@ -83,11 +80,11 @@ function sobelFilter(imgData) {
     const outAngles = new Uint8Array(w * h);
 
     // Sobel filter kernels
-    const sobelX = [[1, 0, -1],
+    const sobelXKernel = [[1, 0, -1],
                     [2, 0, -2],
                     [1, 0, -1]];
 
-    const sobelY = [[ 1,  2,  1],
+    const sobelYKernel = [[ 1,  2,  1],
                     [ 0,  0,  0],
                     [-1, -2, -1]];
 
@@ -101,17 +98,20 @@ function sobelFilter(imgData) {
             let magY = 0;
 
             // Iterate over sobel matrices
-            for (let a = 0; a < 3; a++) {
+            for (let sobelY = 0; sobelY < 3; sobelY++) {
 
-                for (let b = 0; b < 3; b++) {
+                // Current sobel matrix y location
+                let sy = Math.max(0, Math.min(y + sobelY - 1, h - 1));
 
-                    let sy = Math.max(0, Math.min(y + a - 1, h - 1));
-                    let sx = Math.max(0, Math.min(x + b - 1, w - 1));
+                for (let sobelX = 0; sobelX < 3; sobelX++) {
+
+                    // Current sobel matrix x location
+                    let sx = Math.max(0, Math.min(x + sobelX - 1, w - 1));
 
                     let point = 4 * (sx + sy*w);
 
-                    magX += px[point] * sobelX[a][b];
-                    magY += px[point] * sobelY[a][b];
+                    magX += px[point] * sobelXKernel[sobelY][sobelX];
+                    magY += px[point] * sobelYKernel[sobelY][sobelX];
 
                 }
             }
@@ -253,14 +253,16 @@ function doubleThreshold(imgData, highThreshold, lowThreshold = highThreshold) {
 
                 // Blob analysis of 8 (technically all 9) surrounding pixels
                 loop1:
-                for (let a = 0; a < 3; a++) {
+                for (let blobY = 0; blobY < 3; blobY++) {
 
-                    for (let b = 0; b < 3; b++) {
+                    // Current blob matrix y location
+                    let by = Math.max(0, Math.min(y + blobY - 1, h - 1));
 
-                        let sy = Math.max(0, Math.min(y + a - 1, h - 1));
-                        let sx = Math.max(0, Math.min(x + b - 1, w - 1));
+                    for (let blobX = 0; blobX < 3; blobX++) {
 
-                        let point = 4 * (sx + sy*w);
+                        // Current blob matrix x location
+                        let bx = Math.max(0, Math.min(x + blobX - 1, w - 1));
+                        let point = 4 * (bx + by*w);
 
                         // If adjacent point is strong, keep this weak point
                         if (px[point] >= highThreshold) {
@@ -301,6 +303,31 @@ function doubleThreshold(imgData, highThreshold, lowThreshold = highThreshold) {
 
 }
 
+function createConvolution(rad, sig) {
+
+    let size = 2 * rad + 1;
+    let conv = new Array(size);
+    let sum = 0;
+
+    // Calculate initial matrix
+    for (let i = 0, y = -rad; i < size; i++, y++) {
+        conv[i] = new Array(size);
+        for (let j = 0, x = -rad; j < size; j++, x++) {
+            conv[i][j] = 1 / (2 * Math.PI * sig*sig) * Math.pow(Math.E, - (x*x + y*y) / (2 * sig*sig));
+            sum += conv[i][j];
+        }
+    }
+
+    // Normalize Matrix
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            conv[i][j] = conv[i][j] / sum;
+        }
+    }
+
+    return conv;
+}
+
 
 /* BEGIN: UI stuff */
 
@@ -329,32 +356,6 @@ let proc = processStep.value;
 let conv = createConvolution(rad, sig);
 
 
-function createConvolution(rad, sig) {
-
-    let size = 2 * rad + 1;
-    let conv = new Array(size);
-    let sum = 0;
-
-    // Calculate initial matrix
-    for (let i = 0, y = -rad; i < size; i++, y++) {
-        conv[i] = new Array(size);
-        for (let j = 0, x = -rad; j < size; j++, x++) {
-            conv[i][j] = 1 / (2 * Math.PI * sig*sig) * Math.pow(Math.E, - (x*x + y*y) / (2 * sig*sig));
-            sum += conv[i][j];
-        }
-    }
-
-    // Normalize Matrix
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            conv[i][j] = conv[i][j] / sum;
-        }
-    }
-
-    return conv;
-}
-
-
 radius.onchange = function(e) {
     rad = Math.max(0, Math.min(10, parseInt(e.target.value || 0)));
     conv = createConvolution(rad, sig);
@@ -371,10 +372,9 @@ highThreshold.onchange = function(e) {
 }
 processStep.onchange = function(e) {
     proc = e.target.value;
-    console.log(proc);
 }
 imgUrl.onchange = function(e) {
-    img.src = e.target.value;
+    img.src = e.target.value || "images/valve.PNG";
 
     img.onload = function() {
         canvas.width = img.naturalWidth;
